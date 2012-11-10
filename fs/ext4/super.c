@@ -458,7 +458,6 @@ void ext4_error_inode(struct inode *inode, const char *function,
 		printk(KERN_CONT "block %llu: ", block);
 	printk(KERN_CONT "comm %s: %pV\n", current->comm, &vaf);
 	va_end(args);
-	save_error_info(sb, function, line);
 
 	ext4_handle_error(inode->i_sb);
 }
