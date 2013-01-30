@@ -31,7 +31,7 @@ time make -j8 CC="ccache $pwd/kernel-extras/arm-eabi-4.4.3/bin/arm-eabi-gcc" 2>&
 echo "making boot image"
 cp arch/arm/boot/zImage mkboot/
 cd mkboot
-./img-l710-jb.sh
+./img-l710-jb-test.sh
 cd ..
 
 echo "making signed zip"
