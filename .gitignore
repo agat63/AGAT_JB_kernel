@@ -69,6 +69,7 @@ out
 kernel-extras
 mkboot
 zip
+*patch*
 
 arch/arm/boot/compressed/lib1funcs.S
 firmware/tsp_melfas/CORE.fw
