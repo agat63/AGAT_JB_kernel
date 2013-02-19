@@ -1344,15 +1344,18 @@ static unsigned int calculate_vdd_dig(struct acpu_level *tgt)
 	return max(tgt->l2_level->vdd_dig, pll_vdd_dig);
 }
 
-#define BOOST_UV 25000
-
-static unsigned boost_uv;
-static bool enable_boost;
-module_param_named(boost, enable_boost, bool, S_IRUGO | S_IWUSR);
-
 static unsigned int calculate_vdd_core(struct acpu_level *tgt)
 {
-	return tgt->vdd_core + (enable_boost ? boost_uv : 0);
+	unsigned int pll_vdd_core;
+
+	if (tgt->speed.src != HFPLL)
+		pll_vdd_core = 0;
+	else if (tgt->speed.pll_l_val > HFPLL_LOW_VDD_PLL_L_MAX)
+		pll_vdd_core = HFPLL_NOMINAL_VDD;
+	else
+		pll_vdd_core = HFPLL_LOW_VDD;
+
+	return max(tgt->vdd_core, pll_vdd_core);
 }
 
 /* Set the CPU's clock rate and adjust the L2 rate, if appropriate. */
@@ -1711,38 +1714,15 @@ static struct acpu_level * __init select_freq_plan(void)
 				v2 = acpu_freq_tbl_8960_kraitv2_slow;
 				break;
 			case 0x1:
-				pr_alert("ACPU PVS: Nominal(L%d)\n",
-					pvs_leakage);
+				pr_alert("ACPU PVS: Nominal\n");
 				v1 = acpu_freq_tbl_8960_kraitv1_nom_fast;
 				v2 = acpu_freq_tbl_8960_kraitv2_nom;
 				break;
 			case 0x3:
-				switch (fmax) {
-					case 0x1:
-						pr_alert("ACPU PVS: Fast1(L%d)\n",
-							pvs_leakage);
-						v1 = acpu_freq_tbl_8960_kraitv1_slow;
-						v2 = acpu_freq_tbl_8960_kraitv2_fast;
-						break;
-					case 0x2:
-						pr_alert("ACPU PVS: Fast2(L%d)\n",
-							pvs_leakage);
-						v1 = acpu_freq_tbl_8960_kraitv1_slow;
-						v2 = acpu_freq_tbl_8960_kraitv2_fast;
-						break;
-					case 0x3:
-						pr_alert("ACPU PVS: Fast3(L%d)\n",
-							pvs_leakage);
-						v1 = acpu_freq_tbl_8960_kraitv1_slow;
-							v2 = acpu_freq_tbl_8960_kraitv2_f3;
-						break;
-					default:
 						pr_info("ACPU PVS: Fast\n");
 						v1 = acpu_freq_tbl_8960_kraitv1_nom_fast;
 						v2 = acpu_freq_tbl_8960_kraitv2_fast;
 						break;
-				}
-				break;
 			default:
 				pr_warn("ACPU PVS: Unknown. Defaulting to slow.\n");
 				v1 = acpu_freq_tbl_8960_kraitv1_slow;
